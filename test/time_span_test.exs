@@ -29,4 +29,25 @@ defmodule Bonfire.Data.Time.TimeSpanTest do
              |> TimeSpan.changeset(%{has_beginning: ~U[2026-12-01 18:00:00.000000Z]})
              |> Repo.insert()
   end
+
+  test "the time zone it happens in is stored, as an IANA name" do
+    object = Fake.fake_user!()
+
+    assert {:ok, _} =
+             %TimeSpan{id: object.id}
+             |> TimeSpan.changeset(%{
+               has_beginning: ~U[2026-12-01 18:00:00.000000Z],
+               timezone: "Europe/Paris"
+             })
+             |> Repo.insert()
+
+    assert %TimeSpan{timezone: "Europe/Paris"} = Repo.get(TimeSpan, object.id)
+  end
+
+  test "a time zone that is not an IANA name is refused" do
+    changeset = TimeSpan.changeset(%{timezone: "Mars/Olympus"})
+
+    refute changeset.valid?
+    assert Keyword.has_key?(changeset.errors, :timezone)
+  end
 end

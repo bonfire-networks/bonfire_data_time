@@ -13,12 +13,19 @@ defmodule Bonfire.Data.Time.TimeSpan do
   mixin_schema do
     field(:has_beginning, :utc_datetime_usec)
     field(:has_end, :utc_datetime_usec)
+
+    # the IANA time zone it happens in (eg. "Europe/Paris"), for its local wall time: an offset in a timestamp does not name a zone
+    field(:timezone, :string)
   end
 
-  @cast [:has_beginning, :has_end]
+  # @cast [:has_beginning, :has_end]
+  @cast [:has_beginning, :has_end, :timezone]
 
   def changeset(span \\ %TimeSpan{}, params) do
     cast(span, params, @cast)
+    |> validate_change(:timezone, fn :timezone, zone ->
+      if Tzdata.zone_exists?(zone), do: [], else: [timezone: "is not a known time zone"]
+    end)
   end
 end
 
@@ -37,6 +44,7 @@ defmodule Bonfire.Data.Time.TimeSpan.Migration do
       Needle.Migration.create_mixin_table Bonfire.Data.Time.TimeSpan do
         Ecto.Migration.add(:has_beginning, :timestamptz)
         Ecto.Migration.add(:has_end, :timestamptz)
+        Ecto.Migration.add(:timezone, :text)
         unquote_splicing(exprs)
       end
     end

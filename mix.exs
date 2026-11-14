@@ -38,6 +38,8 @@ defmodule Bonfire.Data.Time.MixProject do
       deps:
         Mess.deps([
           {:needle, "~> 0.7"},
+          # validates time zone names
+          {:tzdata, "~> 1.1"},
           {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
         ])
     ]
